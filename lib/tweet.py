@@ -27,12 +27,16 @@ class Tweet:
         def safe_int(value, default=0):
             return int(value) if value is not None else default
         
-        tweet_id = tweet_json['id']
+        # Debugging: Check the type of tweet_json
+        if not isinstance(tweet_json, dict):
+            print(f"tweet_json is not a dictionary: {tweet_json}")
+
+        tweet_id = safe_int(tweet_json['id'])
         
         return Tweet(
             thread_id=safe_int(thread_id),
             tweet_id=tweet_id,
-            user_id=tweet_json['user']['id'],
+            user_id=safe_int(tweet_json['user']['id']),
             event=event,
             tweet_class=annotations.get(tweet_id, {}).get('tweet_class', 'retweet'),
             in_reply_to_status_id=safe_int(tweet_json.get('in_reply_to_status_id')),

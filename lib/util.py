@@ -42,7 +42,20 @@ def load_file(file_path):
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON from file: {file_path}")
         print(f"JSONDecodeError: {e}")
-        return []
+        print("Attempting to fix the JSON file...")
+        
+        # Attempt to fix the JSON file
+        fix_json_file(file_path)
+        
+        # Try loading the file again
+        try:
+            with open(file_path) as f:
+                data = json.load(f)
+            return data
+        except json.JSONDecodeError as e:
+            print(f"Failed to decode JSON after fixing: {file_path}")
+            print(f"JSONDecodeError: {e}")
+            return []
 
 def build_tweet_graph(tweets_df):
     tweet_graph = nx.DiGraph()
