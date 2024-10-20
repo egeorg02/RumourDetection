@@ -4,7 +4,9 @@
 """
 
 import json
+import networkx as nx
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def fix_json_file(file_path):
     """Fix the JSON file by adding brackets and commas."""
@@ -42,30 +44,45 @@ def load_file(file_path):
         print(f"JSONDecodeError: {e}")
         return []
 
-def create_and_classify_annotations():
-    """Create a dictionary for quick lookups and classify tweets."""
-    
-    annotations = load_file("pheme-raw/annotations/en-scheme-annotations.json")
-    print(f"Number of annotations: {len(annotations)}")
-    
-    def classify(item):
-        if item.get("support"):
-            return "source"
-        elif item.get("responsetype-vs-source") and item.get("responsetype-vs-previous"):
-            return "deep reply"
-        elif item.get("responsetype-vs-source"):
-            return "direct reply"
-        return "unknown"
-    
-    # Key is tweet ID: int
-    annotations_dict = {
-        int(item["tweetid"]): {
-            "class": classify(item),
-            "support": item.get("support"),
-            "responsetype-vs-source": item.get("responsetype-vs-source"),
-            "responsetype-vs-previous": item.get("responsetype-vs-previous")
-        }
-        for item in annotations
-    }
-    
-    return annotations_dict
+def build_tweet_graph(tweets_df):
+    tweet_graph = nx.DiGraph()
+
+    for _, tweet in tweets_df.iterrows():
+        tweet_id = tweet['tweet_id']
+        thread_id = tweet['thread_id']
+        tweet_class = tweet['tweet_class']
+        in_reply_to_status_id = tweet['in_reply_to_status_id']
+
+        if tweet_id not in tweet_graph:
+            tweet_graph.add_node(tweet_id, tweet_class=tweet_class)
+
+        # Egde represents a reply or retweet directed to the source tweet
+        if tweet_class == 'direct reply' or tweet_class == 'deep reply':
+            tweet_graph.add_edge(tweet_id, in_reply_to_status_id)
+        elif tweet_class == 'retweet':
+            tweet_graph.add_edge(tweet_id, thread_id)
+
+    return tweet_graph
+
+def draw_tweet_network(tweet_graph):
+    node_colors = []
+    for node in tweet_graph.nodes:
+        tweet_class = tweet_graph.nodes[node].get('tweet_class', 'unknown')
+        if tweet_class == 'source':
+            node_colors.append('blue')
+        elif tweet_class == 'direct reply':
+            node_colors.append('yellow')
+        elif tweet_class == 'retweet':
+            node_colors.append('lightblue')
+        elif tweet_class == 'deep reply':
+            node_colors.append('green')
+        else:
+            print(f"Node {node} has Unknown tweet class: {tweet_class}")
+            node_colors.append('red')
+
+    # Draw the graph
+    plt.figure(figsize=(12, 12))
+    pos = nx.spring_layout(tweet_graph, k=0.1)
+    nx.draw(tweet_graph, pos, with_labels=True, node_size=50, node_color=node_colors, font_size=8, font_color="black", edge_color="gray")
+    plt.title("Tweets Network")
+    plt.show()
