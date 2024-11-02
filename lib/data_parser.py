@@ -1,3 +1,4 @@
+import os
 from typing import Dict
 from lib.tweet import Tweet
 from lib.util import load_file
@@ -9,6 +10,7 @@ class DataParser:
     def __init__(self, annotations_file: str):
         """Initializes DataParser with the annotations dictionary."""
         self.annotations = self.create_and_classify_annotations(annotations_file)
+        self.is_rumour_dict = {}
 
     def create_and_classify_annotations(self, file_path: str) -> Dict[int, dict]:
         """Create a dictionary for quick lookups and classify tweets based on annotations."""
@@ -39,7 +41,18 @@ class DataParser:
         }
         
         return annotations_dict
+    
+    def add_thread_annotation(self, annotation_file:str, thread_id: int):
+        """Add annotations for a specific thread."""
+        if os.path.exists(annotation_file):
+            thread_annotations = load_file(annotation_file)
+            if thread_annotations['is_rumour'] == 'rumour':
+                self.is_rumour_dict[thread_id] = True
+            else:
+                self.is_rumour_dict[thread_id] = False
 
-    def parse_tweet(self, tweet: dict, thread_id: int, event: str) -> Tweet:
+    def parse_tweet(self, tweet: dict, thread_id: int, event_name: str) -> Tweet:
         """Parses a single tweet and returns a Tweet object."""
-        return Tweet.from_json(tweet, thread_id, event, self.annotations)
+        is_rumour = self.is_rumour_dict.get(thread_id, False)
+        annotation = self.annotations.get(tweet['id'], {})
+        return Tweet.from_json(tweet, thread_id, event_name, is_rumour, annotation)
