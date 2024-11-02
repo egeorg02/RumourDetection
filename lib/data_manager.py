@@ -59,11 +59,10 @@ class DataManager:
                 'responsetype_vs_previous': str,
                 'favorite_count': int,
                 'retweet_count': int,
-                'created_at': str,
-                'unix_ts': int,
-                'normalized_ts': str,
-                'relative_ts_rumour': int,
-                'relative_ts_event': int,
+                'unix_ts': float,
+                # 'normalized_ts': str,
+                'relative_ts_rumour': float,
+                'relative_ts_event': float,
                 'place': str
             }
             tweets_df = pd.read_csv(file_path, dtype=dtype_spec, low_memory=False)

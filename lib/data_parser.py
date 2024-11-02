@@ -58,7 +58,8 @@ class DataParser:
         annotation = self.annotations.get(tweet['id'], {})
         return Tweet.from_json(tweet, thread_id, event_name, is_rumour, annotation)
 
-    def calculate_relative_ts(self, tweets: Dict[int, Tweet]):
+    @staticmethod
+    def calculate_relative_ts(tweets: Dict[int, Tweet]):
         """Calculate relative timestamps for tweets in a dictionary."""
         tweets_df = pd.DataFrame([{
             'tweet_id': tweet_id,
