@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Dict
 from lib.tweet import Tweet
 from lib.util import load_file
-from lib.tweet_classes import TweetClass
+from lib.enums import TweetClass
 
 class DataParser:
     """Parses tweet data and generates Tweet objects, including annotation classification."""

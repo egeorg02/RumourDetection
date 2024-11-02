@@ -6,7 +6,7 @@
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
-from lib.tweet_classes import TweetClass, ColorMap
+from lib.enums import TweetClass, TweetTypeColorMap
 
 def fix_json_file(file_path):
     """Fix the JSON file by adding brackets and commas."""
@@ -80,7 +80,7 @@ def draw_tweet_network(tweet_graph):
     node_colors = []
     for node in tweet_graph.nodes:
         tweet_class = tweet_graph.nodes[node].get('tweet_class', TweetClass.UNKNOWN.value)
-        node_colors.append(ColorMap.get(TweetClass(tweet_class), 'red'))
+        node_colors.append(TweetTypeColorMap.get(TweetClass(tweet_class), 'red'))
 
     # Draw the graph
     plt.figure(figsize=(12, 12))

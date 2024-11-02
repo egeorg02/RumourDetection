@@ -2,14 +2,33 @@ import os
 import pandas as pd
 from lib.user import User
 from lib.tweet import Tweet
+from typing import List
 
 class DataManager:
     """Manages all users and tweets, providing methods to add and retrieve data."""
     
-    def __init__(self):
+    def __init__(self, event_names: List[str] = None):
         self.users = {}   # user_id -> User object
         self.tweets = {}  # tweet_id -> Tweet object
-        self.__load_csv('tweets-data.csv')
+        self.event_names = event_names
+
+        if event_names:
+            for event_name in event_names:
+                self.__load_csv(f'{event_name}.csv')
+                self.__load_followers_data(f'data/{event_name}_who-follows-whom.dat')
+        else:
+            self.event_names = [
+                "charliehebdo",
+                "ebola-essien",
+                "ferguson",
+                "germanwings-crash",
+                "ottawashooting",
+                "prince-toronto",
+                "putinmissing",
+                "sydneysiege"
+            ]
+            self.__load_csv('tweets-data.csv')
+            self.__load_followers_data('data/who-follows-whom.dat')
     
     def add_user(self, user_id: int):
         """Adds a new user if they don't already exist."""
@@ -60,7 +79,6 @@ class DataManager:
                 'favorite_count': int,
                 'retweet_count': int,
                 'unix_ts': float,
-                # 'normalized_ts': str,
                 'relative_ts_rumour': float,
                 'relative_ts_event': float,
                 'place': str
@@ -156,20 +174,17 @@ class DataManager:
     
     def __load_followers_data(self, file_path: str):
         """Loads follower relationships from a file into the DataManager."""
-        with open(file_path, 'r') as f:
-            for line in f:
-                follower_id, followed_id = map(int, line.strip().split())
-                self.add_user(follower_id)
-                self.add_user(followed_id)
-                self.users[follower_id].add_following(followed_id)
-                self.users[followed_id].add_follower(follower_id)
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                for line in f:
+                    follower_id, followed_id = map(int, line.strip().split())
+                    self.add_user(follower_id)
+                    self.add_user(followed_id)
+                    self.users[follower_id].add_following(followed_id)
+                    self.users[followed_id].add_follower(followed_id)
 
     def get_users_df(self) -> pd.DataFrame:
         """Returns a DataFrame for users and their relationships."""
-        followers_file = "data/who-follows-whom.dat"
-        if os.path.exists(followers_file):
-            self.__load_followers_data(followers_file)
-
         user_data = []
         for user in self.users.values():
             user_data.append({

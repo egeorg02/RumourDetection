@@ -34,6 +34,7 @@ class Tweet:
     def __parse_created_at(self, created_at: str) -> datetime:
         """Parse the created_at string into a datetime object."""
         return datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S%z')
+        # return datetime.strptime(created_at, '%a %b %d %H:%M:%S %z %Y')
 
     def __get_unix_timestamp(self) -> float:
         """Convert created_at to Unix timestamp."""

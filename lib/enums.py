@@ -7,10 +7,15 @@ class TweetClass(Enum):
     DEEP_REPLY = 'deep reply'
     UNKNOWN = 'unknown'
 
-ColorMap = {
+TweetTypeColorMap = {
     TweetClass.SOURCE: 'blue',
     TweetClass.DIRECT_REPLY: 'yellow',
     TweetClass.RETWEET: 'lightblue',
     TweetClass.DEEP_REPLY: 'green',
     TweetClass.UNKNOWN: 'red'
 }
+
+class EdgeRelationship(Enum):
+    FOLLOW = 'follows'
+    RETWEET = 'retweets'
+    REPLY = 'replies_to'
