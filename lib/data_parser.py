@@ -1,6 +1,7 @@
 from typing import Dict
 from lib.tweet import Tweet
 from lib.util import load_file
+from lib.tweet_classes import TweetClass
 
 class DataParser:
     """Parses tweet data and generates Tweet objects, including annotation classification."""
@@ -17,17 +18,19 @@ class DataParser:
         
         def classify(item):
             if item.get("support"):
-                return "source"
+                return TweetClass.SOURCE
             elif item.get("responsetype-vs-source") and item.get("responsetype-vs-previous"):
-                return "deep reply"
+                return TweetClass.DEEP_REPLY
             elif item.get("responsetype-vs-source"):
-                return "direct reply"
-            return "unknown"
+                return TweetClass.DIRECT_REPLY
+            else:
+                print(f"Unknown tweet class: {item}")
+                return TweetClass.UNKNOWN
         
         # Key is tweet ID: int
         annotations_dict = {
             int(item["tweetid"]): {
-                "tweet_class": classify(item),
+                "tweet_class": classify(item).value,
                 "support": item.get("support"),
                 "responsetype_vs_source": item.get("responsetype-vs-source"),
                 "responsetype_vs_previous": item.get("responsetype-vs-previous")

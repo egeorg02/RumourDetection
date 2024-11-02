@@ -5,12 +5,11 @@
 
 import json
 import networkx as nx
-import pandas as pd
 import matplotlib.pyplot as plt
+from lib.tweet_classes import TweetClass, ColorMap
 
 def fix_json_file(file_path):
     """Fix the JSON file by adding brackets and commas."""
-
     try:
         with open(file_path, "r") as file:
             lines = file.readlines()
@@ -31,7 +30,6 @@ def fix_json_file(file_path):
 
 def load_file(file_path):
     """Load JSON file."""
-
     try:
         with open(file_path) as f:
             data = json.load(f)
@@ -69,29 +67,20 @@ def build_tweet_graph(tweets_df):
         if tweet_id not in tweet_graph:
             tweet_graph.add_node(tweet_id, tweet_class=tweet_class)
 
-        # Egde represents a reply or retweet directed to the source tweet
-        if tweet_class == 'direct reply' or tweet_class == 'deep reply':
+        # Edge represents a reply or retweet directed to the source tweet
+        if tweet_class == TweetClass.DIRECT_REPLY.value or tweet_class == TweetClass.DEEP_REPLY.value:
             tweet_graph.add_edge(tweet_id, in_reply_to_status_id)
-        elif tweet_class == 'retweet':
+        elif tweet_class == TweetClass.RETWEET.value:
             tweet_graph.add_edge(tweet_id, thread_id)
 
     return tweet_graph
 
 def draw_tweet_network(tweet_graph):
+    """Draw the tweet network graph with the corresponding color map, red if the class in unknown."""
     node_colors = []
     for node in tweet_graph.nodes:
-        tweet_class = tweet_graph.nodes[node].get('tweet_class', 'unknown')
-        if tweet_class == 'source':
-            node_colors.append('blue')
-        elif tweet_class == 'direct reply':
-            node_colors.append('yellow')
-        elif tweet_class == 'retweet':
-            node_colors.append('lightblue')
-        elif tweet_class == 'deep reply':
-            node_colors.append('green')
-        else:
-            print(f"Node {node} has Unknown tweet class: {tweet_class}")
-            node_colors.append('red')
+        tweet_class = tweet_graph.nodes[node].get('tweet_class', TweetClass.UNKNOWN.value)
+        node_colors.append(ColorMap.get(TweetClass(tweet_class), 'red'))
 
     # Draw the graph
     plt.figure(figsize=(12, 12))
