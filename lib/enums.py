@@ -12,10 +12,16 @@ TweetTypeColorMap = {
     TweetClass.DIRECT_REPLY: 'yellow',
     TweetClass.RETWEET: 'lightblue',
     TweetClass.DEEP_REPLY: 'green',
-    TweetClass.UNKNOWN: 'red'
+    TweetClass.UNKNOWN: 'black'
 }
 
 class EdgeRelationship(Enum):
     FOLLOW = 'follows'
     RETWEET = 'retweets'
     REPLY = 'replies_to'
+
+RelationColorMap = {
+    EdgeRelationship.FOLLOW: 'pink',
+    EdgeRelationship.RETWEET: 'lightblue',
+    EdgeRelationship.REPLY: 'yellow'
+}
