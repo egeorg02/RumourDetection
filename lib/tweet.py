@@ -21,20 +21,34 @@ class Tweet:
         self.responsetype_vs_previous = responsetype_vs_previous
         self.favorite_count = favorite_count
         self.retweet_count = retweet_count
-        self.created_at = created_at
+        self.created_at = self.__parse_created_at(created_at)
         self.place = place
 
+        # New attributes for temporal analysis
+        self.unix_ts = self.__get_unix_timestamp()
+        self.normalized_ts = self.__get_normalized_timestamp()
+        self.relative_ts_rumour = None  # To be set later based on the start of the rumour
+        self.relative_ts_event = None   # To be set later based on the start of the event
+
+    def __parse_created_at(self, created_at: str) -> datetime:
+        """Parse the created_at string into a datetime object."""
+        return datetime.strptime(created_at, '%a %b %d %H:%M:%S %z %Y')
+
+    def __get_unix_timestamp(self) -> float:
+        """Convert created_at to Unix timestamp."""
+        return self.created_at.timestamp()
+
+    def __get_normalized_timestamp(self) -> datetime:
+        """Normalize timestamp to Eastern Time (ET, UTC-5)."""
+        return self.created_at.astimezone(pytz.timezone('America/New_York'))
+
     @staticmethod
-    def from_json(tweet_json: dict, thread_id: int, event: str, is_rumour:bool, annotations: dict) -> 'Tweet':
+    def from_json(tweet_json: dict, thread_id: int, event: str, is_rumour: bool, annotations: dict) -> 'Tweet':
         """Factory method to create a Tweet object from a dictionary."""
         
-        def safe_int(value, default=0):
+        def safe_int(value, default=0) -> int:
             return int(value) if value is not None else default
         
-        # Debugging: Check the type of tweet_json
-        if not isinstance(tweet_json, dict):
-            print(f"tweet_json is not a dictionary: {tweet_json}")
-
         tweet_id = safe_int(tweet_json['id'])
         
         return Tweet(

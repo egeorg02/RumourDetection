@@ -60,6 +60,10 @@ class DataManager:
                 'favorite_count': int,
                 'retweet_count': int,
                 'created_at': str,
+                'unix_ts': int,
+                'normalized_ts': str,
+                'relative_ts_rumour': int,
+                'relative_ts_event': int,
                 'place': str
             }
             tweets_df = pd.read_csv(file_path, dtype=dtype_spec, low_memory=False)
@@ -79,6 +83,10 @@ class DataManager:
                     favorite_count=row['favorite_count'],
                     retweet_count=row['retweet_count'],
                     created_at=row['created_at'],
+                    unix_ts=row['unix_ts'],
+                    normalized_ts=row['normalized_ts'],
+                    relative_ts_rumour=row['relative_ts_rumour'],
+                    relative_ts_event=row['relative_ts_event'],
                     place=row['place']
                 )
                 self.add_data(tweet)
@@ -105,6 +113,10 @@ class DataManager:
             'favorite_count': tweet.favorite_count,
             'retweet_count': tweet.retweet_count,
             'created_at': tweet.created_at,
+            'unix_ts': tweet.unix_ts,
+            'normalized_ts': tweet.normalized_ts,
+            'relative_ts_rumour': tweet.relative_ts_rumour,
+            'relative_ts_event': tweet.relative_ts_event,
             'place': tweet.place
         } for tweet in self.tweets.values()]
         
@@ -134,6 +146,10 @@ class DataManager:
                     'favorite_count': tweet.favorite_count,
                     'retweet_count': tweet.retweet_count,
                     'created_at': tweet.created_at,
+                    'unix_ts': tweet.unix_ts,
+                    'normalized_ts': tweet.normalized_ts,
+                    'relative_ts_rumour': tweet.relative_ts_rumour,
+                    'relative_ts_event': tweet.relative_ts_event,
                     'place': tweet.place
                 })    
 

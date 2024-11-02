@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from typing import Dict
 from lib.tweet import Tweet
 from lib.util import load_file
@@ -56,3 +57,31 @@ class DataParser:
         is_rumour = self.is_rumour_dict.get(thread_id, False)
         annotation = self.annotations.get(tweet['id'], {})
         return Tweet.from_json(tweet, thread_id, event_name, is_rumour, annotation)
+
+    def calculate_relative_ts(self, tweets: Dict[int, Tweet]):
+        """Calculate relative timestamps for tweets in a dictionary."""
+        tweets_df = pd.DataFrame([{
+            'tweet_id': tweet_id,
+            'event': tweet.event,
+            'is_rumour': tweet.is_rumour,
+            'tweet_class': tweet.tweet_class,
+            'unix_ts': tweet.unix_ts
+        } for tweet_id, tweet in tweets.items()])
+        
+        # Calculate relative timestamps for each event
+        for event, group in tweets_df.groupby('event'):
+            # Find the earliest source tweet that is a rumour
+            rumour_start_time = group[group['is_rumour'] & (group['tweet_class'] == TweetClass.SOURCE.value)]['unix_ts'].min()
+            
+            # Find the earliest tweet in the event
+            event_start_time = group['unix_ts'].min()
+            
+            # Calculate relative timestamps
+            tweets_df.loc[group.index, 'relative_ts_rumour'] = group['unix_ts'] - rumour_start_time
+            tweets_df.loc[group.index, 'relative_ts_event'] = group['unix_ts'] - event_start_time
+        
+        # Update the Tweet objects with the calculated relative timestamps
+        for _, row in tweets_df.iterrows():
+            tweet_id = row['tweet_id']
+            tweets[tweet_id].relative_ts_rumour = row['relative_ts_rumour']
+            tweets[tweet_id].relative_ts_event = row['relative_ts_event']
