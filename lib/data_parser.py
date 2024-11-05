@@ -70,7 +70,7 @@ class DataParser:
         } for tweet_id, tweet in tweets.items()])
         
         # Calculate relative timestamps for each event
-        for event, group in tweets_df.groupby('event'):
+        for _, group in tweets_df.groupby('event'):
             # Find the earliest source tweet that is a rumour
             rumour_start_time = group[group['is_rumour'] & (group['tweet_class'] == TweetClass.SOURCE.value)]['unix_ts'].min()
             

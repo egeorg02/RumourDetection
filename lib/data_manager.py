@@ -181,7 +181,7 @@ class DataManager:
                     self.add_user(follower_id)
                     self.add_user(followed_id)
                     self.users[follower_id].add_following(followed_id)
-                    self.users[followed_id].add_follower(followed_id)
+                    self.users[followed_id].add_follower(follower_id)
 
     def get_users_df(self) -> pd.DataFrame:
         """Returns a DataFrame for users and their relationships."""
