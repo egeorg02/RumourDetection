@@ -7,8 +7,6 @@ import matplotlib.colors as mcolors
 import numpy as np
 from networkx.drawing.nx_agraph import graphviz_layout
 
-# TODO: tidy up & check code again, if we will keep it :)
-
 events = {
     "putinmissing": {"colour": "#C62828", "descr": "Putin missing"},
     "charliehebdo": {"colour": "#1565C0", "descr": "Charlie Hebdo shooting"},
@@ -17,7 +15,7 @@ events = {
     "germanwings-crash": {"colour": "#E65100", "descr": "Germanwings plane crash"},
     "ottawashooting": {"colour": "#00796B", "descr": "Ottawa shooting"},
     "sydneysiege": {"colour": "#4E342E", "descr": "Sydney siege"},
-    "gurlitt": {"colour": "#D81B60", "descr": "Gurlitt collection"},
+    #"gurlitt": {"colour": "#D81B60", "descr": "Gurlitt collection"},
     "ebola-essien": {"colour": "#F57F17", "descr": "Michael Essien contracted Ebola"}
 }
 
@@ -59,7 +57,7 @@ def add_edges(graph, parent_id, children, parent_colour):
             add_edges(graph, child_id, sub_children, child_color)  # Recursively process children
 
 def create_graph(graph, parent_id, children, parent_colour):
-    G.add_node(parent_id, color=parent_colour)
+    G.add_node(parent_id, color=parent_colour) 
     graph.nodes[parent_id]['color'] = parent_colour  # Set parent's color (source)
     add_edges(graph, parent_id, children, parent_colour) # recursively add children
 
@@ -71,7 +69,7 @@ def read_json_file(file_path):
 
 def draw_graph (graph, event):
     plt.figure(figsize=(10, 6))# (12, 10))
-    pos=nx.spring_layout(G)
+    pos=nx.spring_layout(graph)
     plt.title(f"Tweet replies for {event}", fontsize=10)
     nx.draw(graph,
         pos = pos,
@@ -81,7 +79,7 @@ def draw_graph (graph, event):
         node_size=20,
         arrowstyle='-|>',
         arrowsize=3)
-    plt.axis('off')  # Optionally turn off the axis
+    plt.axis('off')
     plt.show()
 
 def draw_arrow(start, end, ax, color='gray'):
@@ -138,10 +136,22 @@ def lighten_color(color, amount=0.3):
     lightened_color = [(1 - amount) * c + amount for c in rgba[:3]] + [rgba[3]]  # Preserve alpha
     return lightened_color    
 
+def get_statistics(G):
+    # Calculate metrics and display results
+    print("Number of vertices:", G.number_of_nodes())
+    print("Number of edges:", G.number_of_edges())
+
+
+def count_misinformation(misinf_count, total_count, path):
+    json_data=read_json_file(path)
+    if json_data["misinformation"]=="1":
+        return misinf_count+1, total_count+1
+    return misinf_count, total_count+1
+
 if __name__ == '__main__':
     # Specify the directory you want to list
     directory_path = 'phemerumourschemedataset\\threads'
-    languages=['en'] # TODO: add de?
+    languages=['en']
     for lan in languages:
         lan_path = os.path.join(directory_path, lan)
         for event in events:
@@ -151,15 +161,25 @@ if __name__ == '__main__':
             print('---------------- EVENT -----------------', event)
             event_path = os.path.join(lan_path, event)
             sources = get_direct_children(event_path)
+            misinf_count=0 # counts the number of source tweets that include misinformation
+            total_count=0
             for source in sources:
                 source_conversation = os.path.join(event_path, source, 'structure.json')
-                print(source_conversation)
-                # Populate the graph with edges
+                
+                # check if source is annotated as misinformation
+                misinf_count, total_count = count_misinformation(misinf_count, total_count, os.path.join(event_path, source, 'annotation.json'))
+                
+                # Populate the graph
                 json_data=read_json_file(source_conversation)
                 for parent_id, children in json_data.items():
                     create_graph(G, parent_id, children, events[event]["colour"])
                     center_nodes.append(parent_id) # TODO: remove?
+            
             # Draw the graph
-            draw_graph(G, events[event]["descr"])
+            #draw_graph(G, events[event]["descr"])
             # draw_3d_directed_graph(G)
+
+            print("Misinformation tweets:", misinf_count, total_count, f"({misinf_count/total_count*100}%)")
+
+            get_statistics(G)
     
